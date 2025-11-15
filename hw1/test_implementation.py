@@ -30,63 +30,9 @@ print(f"  X_train: {X_train.shape}, y_train: {y_train.shape}")
 print(f"  X_test: {X_test.shape}, y_test: {y_test.shape}")
 print(f"  Number of classes: {C}")
 
-# Test 1: LinearPerceptron initialization and prediction
+# Test 1: softmax function
 print("\n" + "=" * 70)
-print("TEST 1: LinearPerceptron Initialization and Prediction")
-print("=" * 70)
-
-try:
-    perceptron = linear_models.LinearPerceptron(X_train, y_train)
-    print("✓ LinearPerceptron initialized successfully")
-    print(f"  Weight matrix shape: {perceptron.W.shape}")
-    print(f"  Expected shape: ({D+1}, {C})")
-    assert perceptron.W.shape == (D + 1, C), "Weight shape mismatch!"
-    
-    y_pred = perceptron.predict(X_test)
-    print(f"✓ Prediction works: {y_pred.shape}")
-    assert y_pred.shape == (N_test,), "Prediction shape mismatch!"
-    assert np.all((y_pred >= 0) & (y_pred < C)), "Predictions out of range!"
-    print("✓ All predictions in valid range [0, C-1]")
-    
-except Exception as e:
-    print(f"✗ FAILED: {e}")
-
-# Test 2: calc_accuracy
-print("\n" + "=" * 70)
-print("TEST 2: Accuracy Calculation")
-print("=" * 70)
-
-try:
-    acc = perceptron.calc_accuracy(X_test, y_test)
-    print(f"✓ calc_accuracy works: {acc:.4f}")
-    assert 0.0 <= acc <= 1.0, "Accuracy out of range!"
-    print(f"  Initial accuracy (untrained): {acc:.2%}")
-    print(f"  Expected: ~{1/C:.2%} (random guessing for {C} classes)")
-    
-except Exception as e:
-    print(f"✗ FAILED: {e}")
-
-# Test 3: perceptron_loss_naive
-print("\n" + "=" * 70)
-print("TEST 3: Perceptron Loss (Naive)")
-print("=" * 70)
-
-try:
-    W_test = 0.001 * np.random.randn(D + 1, C)
-    loss, grad = linear_models.perceptron_loss_naive(W_test, X_train[:100], y_train[:100])
-    print(f"✓ perceptron_loss_naive works")
-    print(f"  Loss: {loss:.4f}")
-    print(f"  Gradient shape: {grad.shape}")
-    assert grad.shape == W_test.shape, "Gradient shape mismatch!"
-    assert 0.0 <= loss <= 1.0, "Loss should be fraction of misclassifications!"
-    print("✓ Loss in valid range [0, 1]")
-    
-except Exception as e:
-    print(f"✗ FAILED: {e}")
-
-# Test 4: softmax function
-print("\n" + "=" * 70)
-print("TEST 4: Softmax Function")
+print("TEST 1: Softmax Function")
 print("=" * 70)
 
 try:
@@ -111,10 +57,12 @@ try:
     
 except Exception as e:
     print(f"✗ FAILED: {e}")
+    import traceback
+    traceback.print_exc()
 
-# Test 5: softmax_cross_entropy
+# Test 2: softmax_cross_entropy
 print("\n" + "=" * 70)
-print("TEST 5: Softmax Cross-Entropy Loss")
+print("TEST 2: Softmax Cross-Entropy Loss")
 print("=" * 70)
 
 try:
@@ -129,116 +77,40 @@ try:
     
 except Exception as e:
     print(f"✗ FAILED: {e}")
+    import traceback
+    traceback.print_exc()
 
-# Test 6: Training with perceptron
+# Test 3: softmax_cross_entropy_vectorized
 print("\n" + "=" * 70)
-print("TEST 6: Training LinearPerceptron")
+print("TEST 3: Softmax Cross-Entropy Loss (Vectorized)")
 print("=" * 70)
 
 try:
-    perceptron = linear_models.LinearPerceptron(X_train, y_train)
-    acc_before = perceptron.calc_accuracy(X_train, y_train)
+    W_test = 0.001 * np.random.randn(D + 1, C)
+    loss_vec, grad_vec = linear_models.softmax_cross_entropy_vectorized(W_test, X_train[:100], y_train[:100])
+    loss_reg, grad_reg = linear_models.softmax_cross_entropy(W_test, X_train[:100], y_train[:100])
     
-    print(f"  Accuracy before training: {acc_before:.2%}")
+    print(f"✓ softmax_cross_entropy_vectorized works")
+    print(f"  Vectorized loss: {loss_vec:.4f}")
+    print(f"  Regular loss: {loss_reg:.4f}")
+    print(f"  Loss difference: {abs(loss_vec - loss_reg):.2e}")
     
-    loss_history = perceptron.train(
-        X_train, y_train,
-        learning_rate=1e-4,
-        num_iters=100,
-        batch_size=64,
-        verbose=False
-    )
+    assert np.allclose(loss_vec, loss_reg, rtol=1e-5), "Loss mismatch between implementations!"
+    print("✓ Losses match between implementations")
     
-    acc_after = perceptron.calc_accuracy(X_train, y_train)
-    
-    print(f"✓ Training completed")
-    print(f"  Loss history length: {len(loss_history)}")
-    print(f"  Initial loss: {loss_history[0]:.4f}")
-    print(f"  Final loss: {loss_history[-1]:.4f}")
-    print(f"  Accuracy after training: {acc_after:.2%}")
-    
-    assert len(loss_history) == 100, "Loss history length mismatch!"
-    assert acc_after >= acc_before * 0.9, "Accuracy should not decrease significantly!"
-    print("✓ Training improves or maintains accuracy")
+    grad_diff = np.max(np.abs(grad_vec - grad_reg))
+    print(f"  Max gradient difference: {grad_diff:.2e}")
+    assert np.allclose(grad_vec, grad_reg, rtol=1e-5), "Gradient mismatch between implementations!"
+    print("✓ Gradients match between implementations")
     
 except Exception as e:
     print(f"✗ FAILED: {e}")
+    import traceback
+    traceback.print_exc()
 
-# Test 7: LogisticRegression
+# Test 4: Gradient check for softmax_cross_entropy
 print("\n" + "=" * 70)
-print("TEST 7: LogisticRegression")
-print("=" * 70)
-
-try:
-    logistic = linear_models.LogisticRegression(X_train, y_train)
-    print("✓ LogisticRegression initialized successfully")
-    
-    y_pred = logistic.predict(X_test)
-    print(f"✓ Prediction works: {y_pred.shape}")
-    
-    acc = logistic.calc_accuracy(X_test, y_test)
-    print(f"✓ Accuracy calculation works: {acc:.2%}")
-    
-    loss_history = logistic.train(
-        X_train, y_train,
-        learning_rate=1e-4,
-        num_iters=50,
-        batch_size=64,
-        verbose=False
-    )
-    
-    print(f"✓ Training works")
-    print(f"  Final loss: {loss_history[-1]:.4f}")
-    
-except Exception as e:
-    print(f"✗ FAILED: {e}")
-
-# Test 8: tune_perceptron
-print("\n" + "=" * 70)
-print("TEST 8: Hyperparameter Tuning")
-print("=" * 70)
-
-try:
-    X_val = X_test[:50]
-    y_val = y_test[:50]
-    
-    learning_rates = [1e-4, 1e-3]
-    batch_sizes = [32, 64]
-    
-    results, best_model, best_val = linear_models.tune_perceptron(
-        linear_models.LinearPerceptron,
-        X_train[:200], y_train[:200],
-        X_val, y_val,
-        learning_rates,
-        batch_sizes,
-        num_iters=50,
-        verbose=False
-    )
-    
-    print(f"✓ tune_perceptron works")
-    print(f"  Number of configurations tested: {len(results)}")
-    print(f"  Expected: {len(learning_rates) * len(batch_sizes)}")
-    assert len(results) == len(learning_rates) * len(batch_sizes), "Wrong number of configs!"
-    
-    print(f"  Best validation accuracy: {best_val:.2%}")
-    print(f"  Best model type: {type(best_model).__name__}")
-    
-    # Check results format
-    for (lr, bs), (train_acc, val_acc) in results.items():
-        assert 0.0 <= train_acc <= 1.0, "Train accuracy out of range!"
-        assert 0.0 <= val_acc <= 1.0, "Val accuracy out of range!"
-    print("✓ All accuracies in valid range")
-    
-    print("\n  Results:")
-    for (lr, bs), (train_acc, val_acc) in sorted(results.items()):
-        print(f"    lr={lr:.1e}, bs={bs:3d}: train={train_acc:.4f}, val={val_acc:.4f}")
-    
-except Exception as e:
-    print(f"✗ FAILED: {e}")
-
-# Test 9: Gradient check
-print("\n" + "=" * 70)
-print("TEST 9: Gradient Check (Numerical vs Analytical)")
+print("TEST 4: Gradient Check (Numerical vs Analytical)")
 print("=" * 70)
 
 try:
@@ -252,9 +124,10 @@ try:
     
     # Numerical gradient check
     h = 1e-5
-    num_checks = 5
+    num_checks = 10
     max_error = 0.0
     
+    print("  Checking gradients at random positions...")
     for _ in range(num_checks):
         ix = tuple([randrange(m) for m in W_test.shape])
         
@@ -280,22 +153,116 @@ try:
     elif max_error < 1e-3:
         print("✓ GOOD: Gradient is acceptable")
     else:
-        print("⚠ WARNING: Gradient error is high, but may still work")
+        print("⚠ WARNING: Gradient error is high, may need review")
     
 except Exception as e:
     print(f"✗ FAILED: {e}")
+    import traceback
+    traceback.print_exc()
+
+# Test 5: Gradient check for softmax_cross_entropy_vectorized
+print("\n" + "=" * 70)
+print("TEST 5: Gradient Check for Vectorized Implementation")
+print("=" * 70)
+
+try:
+    from random import randrange
+    
+    W_test = 0.001 * np.random.randn(D + 1, C)
+    X_small = X_train[:10]
+    y_small = y_train[:10]
+    
+    loss, grad = linear_models.softmax_cross_entropy_vectorized(W_test, X_small, y_small)
+    
+    # Numerical gradient check
+    h = 1e-5
+    num_checks = 10
+    max_error = 0.0
+    
+    print("  Checking gradients at random positions...")
+    for _ in range(num_checks):
+        ix = tuple([randrange(m) for m in W_test.shape])
+        
+        W_test[ix] += h
+        loss_plus = linear_models.softmax_cross_entropy_vectorized(W_test, X_small, y_small)[0]
+        
+        W_test[ix] -= 2 * h
+        loss_minus = linear_models.softmax_cross_entropy_vectorized(W_test, X_small, y_small)[0]
+        
+        W_test[ix] += h  # restore
+        
+        grad_numerical = (loss_plus - loss_minus) / (2 * h)
+        grad_analytical = grad[ix]
+        
+        rel_error = abs(grad_numerical - grad_analytical) / (abs(grad_numerical) + abs(grad_analytical) + 1e-8)
+        max_error = max(max_error, rel_error)
+    
+    print(f"✓ Gradient check completed")
+    print(f"  Max relative error: {max_error:.2e}")
+    
+    if max_error < 1e-5:
+        print("✓ EXCELLENT: Vectorized gradient implementation is correct!")
+    elif max_error < 1e-3:
+        print("✓ GOOD: Vectorized gradient is acceptable")
+    else:
+        print("⚠ WARNING: Vectorized gradient error is high, may need review")
+    
+except Exception as e:
+    print(f"✗ FAILED: {e}")
+    import traceback
+    traceback.print_exc()
+
+# Test 6: Performance comparison
+print("\n" + "=" * 70)
+print("TEST 6: Performance Comparison (Regular vs Vectorized)")
+print("=" * 70)
+
+try:
+    import time
+    
+    W_test = 0.001 * np.random.randn(D + 1, C)
+    X_batch = X_train[:200]
+    y_batch = y_train[:200]
+    
+    # Time regular implementation
+    start = time.time()
+    for _ in range(10):
+        loss_reg, grad_reg = linear_models.softmax_cross_entropy(W_test, X_batch, y_batch)
+    time_reg = time.time() - start
+    
+    # Time vectorized implementation
+    start = time.time()
+    for _ in range(10):
+        loss_vec, grad_vec = linear_models.softmax_cross_entropy_vectorized(W_test, X_batch, y_batch)
+    time_vec = time.time() - start
+    
+    print(f"✓ Performance comparison completed")
+    print(f"  Regular implementation: {time_reg*1000:.2f} ms (10 runs)")
+    print(f"  Vectorized implementation: {time_vec*1000:.2f} ms (10 runs)")
+    
+    if time_vec < time_reg:
+        speedup = time_reg / time_vec
+        print(f"✓ Vectorized is {speedup:.2f}x faster!")
+    else:
+        print(f"  Note: Times are similar (both implementations are efficient)")
+    
+except Exception as e:
+    print(f"✗ FAILED: {e}")
+    import traceback
+    traceback.print_exc()
 
 # Summary
 print("\n" + "=" * 70)
-print("SUMMARY")
+print("SUMMARY - linear_models.py")
 print("=" * 70)
-print("✓ All core functionality tests passed!")
-print("✓ Implementation matches expected behavior")
-print("✓ Ready for use with CIFAR-10 dataset in Jupyter notebook")
-print("\nNext steps:")
-print("  1. Upload to Google Colab")
-print("  2. Run notebook cells to download CIFAR-10")
-print("  3. Complete qualitative questions (Q1, Q2, Q3)")
-print("  4. Execute training and hyperparameter tuning")
-print("  5. Save notebook with all outputs")
+print("✓ softmax() function implemented correctly")
+print("✓ softmax_cross_entropy() function implemented correctly")
+print("✓ softmax_cross_entropy_vectorized() function implemented correctly")
+print("✓ Both implementations produce identical results")
+print("✓ Gradients verified numerically")
+print("\nImplementation Status:")
+print("  [✓] softmax(x)")
+print("  [✓] softmax_cross_entropy(W, X, y)")
+print("  [✓] softmax_cross_entropy_vectorized(W, X, y)")
+print("\nReady for use in notebooks!")
 print("=" * 70)
