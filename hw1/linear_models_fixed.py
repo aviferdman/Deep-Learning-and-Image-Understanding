@@ -11,6 +11,7 @@ Each function or method marked with `raise NotImplementedError` needs to be
 implemented by the student.
 """
 
+
 class LinearClassifier:
     """
     Base class for linear classifiers.  Stores weights and provides the
@@ -84,8 +85,8 @@ class LinearClassifier:
         ###########################################################################
         #                          START OF YOUR CODE                             #
         ###########################################################################
-        y_pred = self.predict(X)
-        accuracy = np.mean(y_pred == y)
+  
+  
         ###########################################################################
         #                           END OF YOUR CODE                              #
         ###########################################################################
@@ -159,12 +160,10 @@ class LinearClassifier:
             ###########################################################################
             #                          START OF YOUR CODE                             #
             ###########################################################################
-            batch_indices = np.random.choice(num_instances, batch_size, replace=True)
-            X_batch = X[batch_indices]
-            y_batch = y[batch_indices]
-            
-            loss, grad = self.loss(X_batch, y_batch)
-            loss_history.append(loss)
+     
+     
+     
+     
             ###########################################################################
             #                           END OF YOUR CODE                              #
             ###########################################################################
@@ -174,7 +173,8 @@ class LinearClassifier:
             ###########################################################################
             #                          START OF YOUR CODE                             #                                                         #
             ###########################################################################
-            self.W -= learning_rate * grad
+
+
             ###########################################################################
             #                       END OF YOUR CODE                                  #
             ###########################################################################
@@ -207,6 +207,7 @@ class LinearClassifier:
         """
         raise NotImplementedError("loss must be implemented in subclass")
 
+
 class LinearPerceptron(LinearClassifier):
     """
     Linear classifier that uses the Perceptron loss.
@@ -223,7 +224,8 @@ class LinearPerceptron(LinearClassifier):
         ###########################################################################
         #                          START OF YOUR CODE                             #
         ###########################################################################
-        super().__init__(X, y)
+
+
         ###########################################################################
         #                           END OF YOUR CODE                              #
         ###########################################################################
@@ -249,11 +251,9 @@ class LinearPerceptron(LinearClassifier):
         ###########################################################################
         #                          START OF YOUR CODE                             #
         ###########################################################################
-        D_w = self.W.shape[0]
-        X_use = X[:, :D_w] if X.shape[1] != D_w else X
-        
-        scores = X_use @ self.W
-        y_pred = np.argmax(scores, axis=1)
+    
+    
+    
         ###########################################################################
         #                           END OF YOUR CODE                              #
         ###########################################################################
@@ -280,6 +280,7 @@ class LinearPerceptron(LinearClassifier):
         # Do Not change this function! the implementation of this function is in the `softmax_cross_entropy` function
         return softmax_cross_entropy(self.W, X_batch, y_batch)
 
+
 class LogisticRegression(LinearClassifier):
     """
     Linear classifier that uses softmax and cross-entropy loss for multiclass
@@ -295,7 +296,8 @@ class LogisticRegression(LinearClassifier):
         ###########################################################################
         # TODO: Initialize the model via the base class constructor.              #
         ###########################################################################
-        super().__init__(X, y)
+
+
         ###########################################################################
         #                           END OF YOUR CODE                              #
         ###########################################################################
@@ -318,12 +320,9 @@ class LogisticRegression(LinearClassifier):
         ###########################################################################
         # TODO: Implement this method.                                                  #
         ###########################################################################
-        D_w = self.W.shape[0]
-        X_use = X[:, :D_w] if X.shape[1] != D_w else X
-        
-        scores = X_use @ self.W
-        probs = softmax(scores)
-        y_pred = np.argmax(probs, axis=1)
+
+
+
         ###########################################################################
         #                           END OF YOUR CODE                              #
         ###########################################################################
@@ -348,7 +347,7 @@ class LogisticRegression(LinearClassifier):
             the same shape as ``self.W``.
         """
         # will be implemented later
-        return softmax_cross_entropy(self.W, X_batch, y_batch)
+        return softmax_cross_entropy_vectorized(self.W, X_batch, y_batch)
 
 def perceptron_loss_naive(W: np.ndarray, X: np.ndarray, y: np.ndarray):
     """
@@ -393,18 +392,11 @@ def perceptron_loss_naive(W: np.ndarray, X: np.ndarray, y: np.ndarray):
     # After looping over all samples:                                         #
     #   - Average loss and gradient by N                                      #
     #############################################################################
-    for i in range(N):
-        scores = X_use[i] @ W
-        predicted_class = np.argmax(scores)
-        true_class = y[i]
-        
-        if predicted_class != true_class:
-            loss += 1.0
-            dW[:, predicted_class] += X_use[i]
-            dW[:, true_class] -= X_use[i]
-    
-    loss /= N
-    dW /= N
+
+
+
+
+
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
@@ -445,40 +437,45 @@ def softmax_cross_entropy(W: np.ndarray, X: np.ndarray, y: np.ndarray):
     #############################################################################
     #                           START OF YOUR CODE                              #
     #############################################################################
-    scores = X_use @ W
-    probs = softmax(scores)
+
+
+
+
+
     #############################################################################
     #                            END OF YOUR CODE                               #
     #############################################################################
 
+
     #############################################################################
     # TODO: Compute the loss.                                                   #
     # Use the average negative log-likelihood of the correct class.             #
-    # Hint: use probs[np.arange(N), y] to select the correct class probability. #
     #############################################################################
     #                           START OF YOUR CODE                              #
     #############################################################################
-    correct_class_probs = probs[np.arange(N), y]
-    loss = -np.mean(np.log(correct_class_probs + 1e-10))
+
+
     #############################################################################
     #                            END OF YOUR CODE                               #
     #############################################################################
+
 
     #############################################################################
     # TODO: Backward pass: compute gradient dW.                                 #                           #
     #############################################################################
     #                           START OF YOUR CODE                              #
     #############################################################################
-    dscores = probs.copy()
-    dscores[np.arange(N), y] -= 1
-    dscores /= N
-    
-    dW = X_use.T @ dscores
+
+
+
+
     #############################################################################
     #                            END OF YOUR CODE                               #
     #############################################################################
 
     return loss, dW
+
+
 
 def softmax(x: np.ndarray) -> np.ndarray:
     """
@@ -499,13 +496,96 @@ def softmax(x: np.ndarray) -> np.ndarray:
     #############################################################################
     #                           START OF YOUR CODE                              #
     #############################################################################
-    x_shifted = x - np.max(x, axis=1, keepdims=True)
-    exp_scores = np.exp(x_shifted)
-    probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+
+
+
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
     return probs
+
+def softmax_cross_entropy_vectorized(W: np.ndarray, X: np.ndarray, y: np.ndarray):
+    """
+    Compute the multiclass softmax cross-entropy loss and its gradient
+    using a fully vectorized implementation.
+
+    Parameters
+    ----------
+    W : np.ndarray
+        Weight matrix of shape (D, C).
+
+    X : np.ndarray
+        Data matrix of shape (N, D).
+
+    y : np.ndarray
+        Labels of shape (N,).
+
+    Returns
+    -------
+    loss : float
+    dW   : (D, C) gradient of loss wrt W
+    """
+    # --- Align dimensions if X has extra columns (e.g., duplicate bias) ---
+    D_w = W.shape[0]
+    if X.shape[1] != D_w:
+        X_use = X[:, :D_w]  # drop extra tail columns safely
+    else:
+        X_use = X
+
+    N = X_use.shape[0]
+    loss = 0.0
+    dW = np.zeros_like(W)
+
+    #############################################################################
+    # TODO: Implement the forward pass in a fully vectorized way.               #
+    # 1. Compute the scores (N, C) for all samples in X_use.                    #
+    # 2. Stabilize the scores by subtracting the max score in each row.         #
+    # 3. Compute the softmax probabilities (N, C) for all samples.              #
+    #############################################################################
+    # START OF YOUR CODE                                                        #
+    #############################################################################
+
+    pass  # Replace this line with your code
+
+    #############################################################################
+    # END OF YOUR CODE                                                          #
+    #############################################################################
+
+
+    #############################################################################
+    # TODO: Compute the loss.                                                   #
+    # 1. Select the probabilities for the correct class for all samples.        #
+    #    (Hint: Use advanced integer indexing with np.arange(N) and y)          #
+    # 2. Compute the negative log-likelihood for these probabilities.           #
+    # 3. Compute the average loss (a scalar) across all samples in the batch.   #
+    #############################################################################
+    # START OF YOUR CODE                                                        #
+    #############################################################################
+
+    pass  # Replace this line with your code
+
+    #############################################################################
+    # END OF YOUR CODE                                                          #
+    #############################################################################
+
+
+    #############################################################################
+    # TODO: Backward pass: compute gradient dW.                                 #
+    # 1. Compute the gradient of the loss with respect to the scores.           #
+    # 2. Compute the gradient dW using the chain rule (X.T @ dscores).          #
+    # 3. Average the gradient over the batch (divide by N).                     #
+    #############################################################################
+    # START OF YOUR CODE                                                        #
+    #############################################################################
+
+    pass  # Replace this line with your code
+
+    #############################################################################
+    # END OF YOUR CODE                                                          #
+    #############################################################################
+
+    return loss, dW
+
 
 def tune_perceptron(
     ModelClass,
@@ -570,26 +650,29 @@ def tune_perceptron(
     # - Use 'verbose' to optionally print current hyperparameters.             #
     # - Make sure to create a *new* model for each configuration.              #
     ############################################################################
-    for lr in learning_rates:
-        for batch in batch_sizes:
-            if verbose:
-                print(f"Training with lr={lr:.1e}, batch_size={batch}")
+
             
-            model = ModelClass(X_train, y_train, **model_kwargs)
-            
-            model.train(X_train, y_train, learning_rate=lr, num_iters=num_iters, 
-                       batch_size=batch, verbose=False)
-            
-            train_acc = model.calc_accuracy(X_train, y_train)
-            val_acc = model.calc_accuracy(X_val, y_val)
-            
-            results[(lr, batch)] = (train_acc, val_acc)
-            
-            if val_acc > best_val:
-                best_val = val_acc
-                best_model = model
+            # TODO: Create a new model instance
+            # model = ...
+
+            # TODO: Train the model using the provided hyperparameters
+            # model.train(...)
+
+            # TODO: Compute train and validation accuracy
+            # train_acc = ...
+            # val_acc = ...
+
+            # TODO: Store the results in the 'results' dictionary
+            # results[(lr, batch)] = ...
+
+            # TODO: Update the best model and best_val if this is the best so far
+            # if ... :
+            #     best_val = ...
+            #     best_model = ...
+
     ############################################################################
     #                             END OF YOUR CODE                             #
     ############################################################################
 
     return results, best_model, best_val
+
